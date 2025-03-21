@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:growell/authfiles/OTPauth.dart';
-
-void main() {
-  runApp(const MyApp());
+import 'package:growell/Home/homeScreen.dart';
+import 'package:growell/authfiles/phoneInput.dart';
+import 'package:firebase_core/firebase_core.dart'; // Import Firebase Core
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter binding is initialized
+  await Firebase.initializeApp(); // Initialize Firebase
+  runApp(MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -32,7 +34,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: Otpauth(),
+      home: HomeScreen(),
     );
   }
 }
