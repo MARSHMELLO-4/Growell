@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:growell/Home/homeScreen.dart';
+import 'package:growell/authfiles/PhoneAuthScreen.dart';
 import 'package:growell/authfiles/phoneInput.dart';
-import 'package:firebase_core/firebase_core.dart'; // Import Firebase Core
+import 'package:firebase_core/firebase_core.dart';
+// Import Firebase Core
+import 'package:supabase_flutter/supabase_flutter.dart';
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter binding is initialized
-  await Firebase.initializeApp(); // Initialize Firebase
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: 'https://lmqogledtugtltwyflho.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtcW9nbGVkdHVndGx0d3lmbGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI2NTkzNTYsImV4cCI6MjA1ODIzNTM1Nn0.8bs_jnJc7r4MW4YFZtNuczzCpIsusoX9SZ5IVrdKfkM',
+  );
   runApp(MyApp());
 }
 class MyApp extends StatelessWidget {
@@ -34,7 +40,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: HomeScreen(),
+      home: PhoneAuthScreen(),
     );
   }
 }
