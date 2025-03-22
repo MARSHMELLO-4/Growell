@@ -42,7 +42,6 @@ class _DiseaseDetectionPageState extends State<DiseaseDetectionPage> {
       _isLoading = true;
     });
 
-    print("PredictDisease function called");
     Map<String, dynamic>? res = await predict(ImgPath);
 
     setState(() {
@@ -50,15 +49,10 @@ class _DiseaseDetectionPageState extends State<DiseaseDetectionPage> {
     });
 
     if (res != null) {
-      print("Prediction Response: $res");
-      if (res.containsKey("disease_name")) {
-        String disease = res["disease_name"];
-        print("Detected Disease: $disease");
-      }
-      //now we will move to the navigation page and see the details of the disease
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Diseasedetailspage(res: res,)));
-    } else {
-      print("No valid response received.");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Diseasedetailspage(res: res)),
+      );
     }
   }
 
@@ -77,14 +71,16 @@ class _DiseaseDetectionPageState extends State<DiseaseDetectionPage> {
               ? Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(
+              _buildNeonButton(
+                text: 'Capture Image',
                 onPressed: () => _pickImage(ImageSource.camera),
-                child: Text('Capture Image'),
+                color: Colors.blue,
               ),
               SizedBox(width: 20),
-              ElevatedButton(
+              _buildNeonButton(
+                text: 'Pick from Gallery',
                 onPressed: () => _pickImage(ImageSource.gallery),
-                child: Text('Pick from Gallery'),
+                color: Colors.green,
               ),
             ],
           )
@@ -93,21 +89,40 @@ class _DiseaseDetectionPageState extends State<DiseaseDetectionPage> {
               : Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton(
+              _buildNeonButton(
+                text: 'Upload Image',
                 onPressed: () async {
                   await PredictDisease(_base64Image);
                 },
-                child: Text("Upload Image"),
+                color: Colors.purple,
               ),
               SizedBox(width: 20),
-              ElevatedButton(
+              _buildNeonButton(
+                text: 'Discard Image',
                 onPressed: () => _discardImage(),
-                child: Text('Discard Image'),
+                color: Colors.red,
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNeonButton({required String text, required VoidCallback onPressed, required Color color}) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        backgroundColor: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        shadowColor: color.withOpacity(0.5),
+        elevation: 10,
+      ),
+      child: Text(text, style: TextStyle(color: Colors.white)),
     );
   }
 }
