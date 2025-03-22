@@ -24,8 +24,9 @@ class _DiseasedetailspageState extends State<Diseasedetailspage> {
     final result = widget.res;
     final disease = result?['result']?['disease']?['suggestions']?[0];
     final diseaseName = disease?['name'];
+    final scientificName = disease?['scientific_name'];
 
-    if (diseaseName != null) {
+    if (diseaseName != null && scientificName != null) {
       final url = Uri.parse('https://perenual.com/api/pest-disease-list?key=sk-LMv667de56d689dd96348&page=1');
 
       try {
@@ -34,8 +35,11 @@ class _DiseasedetailspageState extends State<Diseasedetailspage> {
           final data = json.decode(response.body);
           final diseases = data['data'] as List;
 
+          // Match by common name or scientific name
           final matchedDisease = diseases.firstWhere(
-                (d) => d['common_name'].toString().toLowerCase() == diseaseName.toLowerCase(),
+                (d) =>
+            d['common_name'].toString().toLowerCase() == diseaseName.toLowerCase() ||
+                d['scientific_name'].toString().toLowerCase() == scientificName.toLowerCase(),
             orElse: () => {},
           );
 
@@ -73,11 +77,12 @@ class _DiseasedetailspageState extends State<Diseasedetailspage> {
       }
     } else {
       setState(() {
-        description = 'Disease name not found';
-        treatment = 'Disease name not found';
+        description = 'Disease name or scientific name not found';
+        treatment = 'Disease name or scientific name not found';
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final result = widget.res;
