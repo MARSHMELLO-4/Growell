@@ -149,20 +149,33 @@ class _HomescreencontentState extends State<Homescreencontent> {
                   return Card(
                     elevation: 4,
                     margin: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     child: Column(
                       children: [
-                        farms[index]['image'] != null
-                            ? Image.file(farms[index]['image'],
-                            height: 150, fit: BoxFit.cover)
-                            : const SizedBox(),
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                          child: farms[index]['image'] != null
+                              ? Image.file(
+                            farms[index]['image'],
+                            height: 200, // Adjust height as needed
+                            width: double.infinity, // Makes the image cover the full width
+                            fit: BoxFit.cover, // Ensures the image covers the entire area
+                          )
+                              : Container(
+                            height: 200,
+                            width: double.infinity,
+                            color: Colors.grey[300], // Placeholder color
+                            child: const Center(child: Text("No Image", style: TextStyle(fontSize: 16))),
+                          ),
+                        ),
                         ListTile(
                           title: Text(
                             farms[index]['name'],
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                              "Location: ${farms[index]['location']}\nSize: ${farms[index]['size']} acres"),
+                            "Location: ${farms[index]['location']}\nSize: ${farms[index]['size']} acres",
+                          ),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () => _deleteFarm(index),
@@ -171,6 +184,7 @@ class _HomescreencontentState extends State<Homescreencontent> {
                       ],
                     ),
                   );
+
                 },
               ),
             ),
