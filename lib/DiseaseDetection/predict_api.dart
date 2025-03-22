@@ -17,7 +17,8 @@ Future<Map<String, dynamic>?> predict(String? Base64Img) async {
   request.body = json.encode({
     "images": [
       "data:image/jpeg;base64, $Base64Img"  // Injecting Base64 image string here
-    ]
+    ],
+    "similar_images": true,
   });
 
   http.StreamedResponse response = await request.send();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:growell/DiseaseDetection/diseasedetectionScreen.dart';
+import 'package:growell/Home/HomeScreenContent.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -10,7 +11,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   static List<Widget> _widgetOptions = <Widget>[
-    Center(child: Text('', style: TextStyle(fontSize: 24))),
+    Homescreencontent(),
     DiseaseDetectionPage(),
   ];
 
