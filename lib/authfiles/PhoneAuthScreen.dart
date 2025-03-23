@@ -19,12 +19,10 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
     try {
       await supabase.auth.signInWithOtp(phone: _phoneController.text);
       setState(() => _isOtpSent = true);
-      print('OTP sent to ${_phoneController.text}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('OTP sent to ${_phoneController.text}')),
       );
     } catch (e) {
-      print('Error: ${e.toString()}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -43,10 +41,9 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Successfully logged in!')),
       );
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => HomeScreen()));
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => HomeScreen()));
     } catch (e) {
-      print('Error: ${e.toString()}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -57,50 +54,86 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: EdgeInsets.all(20.0),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.green.shade600, Colors.green.shade900],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Phone Authentication',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
               ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.phone),
+              elevation: 8,
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Phone Authentication',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: Icon(Icons.phone, color: Colors.green),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    if (_isOtpSent)
+                      TextField(
+                        controller: _otpController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Enter OTP',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          prefixIcon: Icon(Icons.lock, color: Colors.green),
+                        ),
+                      ),
+                    SizedBox(height: 20),
+                    _isLoading
+                        ? CircularProgressIndicator()
+                        : SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isOtpSent ? _verifyOtp : _sendOtp,
+                        child: Text(
+                          _isOtpSent ? 'Verify OTP' : 'Send OTP',
+                          style: TextStyle(fontSize: 18,color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade700,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 10),
-              _isOtpSent
-                  ? TextField(
-                controller: _otpController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Enter OTP',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                ),
-              )
-                  : SizedBox(),
-              SizedBox(height: 20),
-              _isLoading
-                  ? CircularProgressIndicator()
-                  : ElevatedButton(
-                onPressed: _isOtpSent ? _verifyOtp : _sendOtp,
-                child: Text(_isOtpSent ? 'Verify OTP' : 'Send OTP'),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  textStyle: TextStyle(fontSize: 18),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
