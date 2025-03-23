@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 Future<Map<String, dynamic>?> predict(String? Base64Img) async {
   var headers = {
-    'Api-Key': '4sguca4IIhn4IhSo96hPaaRG9FuyHDYWcDzxNXpfwhS9NfgD6S',
+    'Api-Key': '0cuJPkWZ0r0xudTuFRByXCHN0JVS6KTHG1LL4NP1MMcKQg3UZl',
     'Content-Type': 'application/json',
   };
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:growell/Home/homeScreen.dart';
 import 'package:growell/authfiles/PhoneAuthScreen.dart';
-import 'package:growell/authfiles/phoneInput.dart';
 import 'package:firebase_core/firebase_core.dart';
 // Import Firebase Core
 import 'package:supabase_flutter/supabase_flutter.dart';

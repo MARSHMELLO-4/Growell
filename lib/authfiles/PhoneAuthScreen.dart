@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:growell/Home/homeScreen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PhoneAuthScreen extends StatefulWidget {
   @override
@@ -13,6 +14,25 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   final SupabaseClient supabase = Supabase.instance.client;
   bool _isOtpSent = false;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    String? phoneNumber = prefs.getString('phoneNumber');
+
+    if (isLoggedIn && phoneNumber != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
+    }
+  }
 
   Future<void> _sendOtp() async {
     setState(() => _isLoading = true);
@@ -38,17 +58,33 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
         phone: _phoneController.text,
         token: _otpController.text,
       );
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('phoneNumber', _phoneController.text);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Successfully logged in!')),
       );
+
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
     }
     setState(() => _isLoading = false);
+  }
+
+  void _reEnterPhoneNumber() {
+    setState(() {
+      _isOtpSent = false;
+      _phoneController.clear();
+      _otpController.clear();
+    });
   }
 
   @override
@@ -112,23 +148,34 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
                     SizedBox(height: 20),
                     _isLoading
                         ? CircularProgressIndicator()
-                        : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isOtpSent ? _verifyOtp : _sendOtp,
-                        child: Text(
-                          _isOtpSent ? 'Verify OTP' : 'Send OTP',
-                          style: TextStyle(fontSize: 18,color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade700,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        : Column(
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _isOtpSent ? _verifyOtp : _sendOtp,
+                            child: Text(
+                              _isOtpSent ? 'Verify OTP' : 'Send OTP',
+                              style: TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green.shade700,
+                              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        if (_isOtpSent) // Re-enter button only when OTP is sent
+                          TextButton(
+                            onPressed: _reEnterPhoneNumber,
+                            child: Text(
+                              'Re-enter Phone Number',
+                              style: TextStyle(color: Colors.red, fontSize: 16),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
