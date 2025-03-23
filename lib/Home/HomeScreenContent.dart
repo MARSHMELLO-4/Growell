@@ -212,58 +212,92 @@ class _HomescreencontentState extends State<Homescreencontent> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text("Add Farm"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: "Farm Name"),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Add Farm"),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Image Preview
+                    if (selectedImage != null)
+                      Container(
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: FileImage(selectedImage!), // Display the selected image
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                    else
+                      Container(
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Text("No Image Selected"),
+                        ),
+                      ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(labelText: "Farm Name"),
+                    ),
+                    TextField(
+                      controller: locationController,
+                      decoration: const InputDecoration(labelText: "Location"),
+                    ),
+                    TextField(
+                      controller: sizeController,
+                      decoration: const InputDecoration(labelText: "Size (acres)"),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+                        if (image != null) {
+                          setState(() {
+                            selectedImage = File(image.path); // Update the state to show the selected image
+                          });
+                        }
+                      },
+                      child: const Text("Upload Image"),
+                    ),
+                  ],
+                ),
               ),
-              TextField(
-                controller: locationController,
-                decoration: const InputDecoration(labelText: "Location"),
-              ),
-              TextField(
-                controller: sizeController,
-                decoration: const InputDecoration(labelText: "Size (acres)"),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-                  if (image != null) {
-                    selectedImage = File(image.path);
-                  }
-                },
-                child: const Text("Upload Image"),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () async {
-                final name = nameController.text;
-                final location = locationController.text;
-                final size = sizeController.text;
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final name = nameController.text;
+                    final location = locationController.text;
+                    final size = sizeController.text;
 
-                if (name.isNotEmpty && location.isNotEmpty && size.isNotEmpty) {
-                  await _addFarm(name, location, size, selectedImage);
-                  Navigator.pop(context);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please fill all fields")),
-                  );
-                }
-              },
-              child: const Text("Save"),
-            ),
-          ],
+                    if (name.isNotEmpty && location.isNotEmpty && size.isNotEmpty) {
+                      await _addFarm(name, location, size, selectedImage);
+                      Navigator.pop(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Please fill all fields")),
+                      );
+                    }
+                  },
+                  child: const Text("Save"),
+                ),
+              ],
+            );
+          },
         );
       },
     );
