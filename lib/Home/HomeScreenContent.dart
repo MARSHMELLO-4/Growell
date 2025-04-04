@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -15,6 +16,10 @@ class _HomescreencontentState extends State<Homescreencontent> {
   final ImagePicker _picker = ImagePicker();
   List<Map<String, dynamic>> farms = [];
   String? userPhoneNumber;
+  String? selectedCrop;
+  double? latitude;
+  double? longitude;
+  final List<String> cropList = ["Sugarcane", "Wheat", "Potato", "Paddy", "Coffee"];
 
   @override
   void initState() {
@@ -23,9 +28,32 @@ class _HomescreencontentState extends State<Homescreencontent> {
     _fetchUserPhoneNumber();
   }
 
+  Future<void> _getCurrentLocation(Function(void Function()) setDialogState) async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
+        print("Location permission denied");
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      setDialogState(() {
+        latitude = position.latitude;
+        longitude = position.longitude;
+      });
+      print("Lat: $latitude, Long: $longitude");
+    } catch (e) {
+      print("Error getting location: $e");
+    }
+  }
+
   Future<String?> _uploadImageToCloudinary(File image) async {
-    const String cloudName = "dcpdaxsrs"; // Replace with your Cloudinary cloud name
-    const String uploadPreset = "imageStorage"; // Replace with your upload preset
+    const String cloudName = "dcpdaxsrs";
+    const String uploadPreset = "imageStorage";
 
     final Uri uploadUrl = Uri.parse("https://api.cloudinary.com/v1_1/$cloudName/image/upload");
 
@@ -84,9 +112,11 @@ class _HomescreencontentState extends State<Homescreencontent> {
           farms = response.map((farm) => {
             "id": farm["id"],
             "name": farm["farm_name"],
-            "location": farm["location"],
             "size": farm["size"],
             "imageUrl": farm["imageUrl"],
+            "crop_name": farm["crop_name"],
+            "latitude": farm["latitude"],
+            "longitude": farm["longitude"],
           }).toList();
         });
 
@@ -99,50 +129,44 @@ class _HomescreencontentState extends State<Homescreencontent> {
     }
   }
 
-  Future<void> _addFarm(String name, String location, String size, File? image) async {
-    if (userPhoneNumber == null) {
-      print("User phone number is null. Cannot add farm.");
+  Future<void> _addFarm(String name, String size, File? image) async {
+    if (userPhoneNumber == null || latitude == null || longitude == null || selectedCrop == null) {
+      print("Missing required data to add farm.");
       return;
     }
 
     String? imageUrl;
     if (image != null) {
       imageUrl = await _uploadImageToCloudinary(image);
-      if (imageUrl == null) {
-        print("Failed to upload image to Cloudinary.");
-        return;
-      }
+      if (imageUrl == null) return;
     }
 
     try {
-      final response = await supabase
-          .from('Farms')
-          .insert({
+      final response = await supabase.from('Farms').insert({
         "farm_name": name,
-        "location": location,
         "size": size,
         "phoneNumber": userPhoneNumber,
         "imageUrl": imageUrl ?? "",
-      })
-          .select()
-          .single();
+        "crop_name": selectedCrop,
+        "latitude": latitude,
+        "longitude": longitude,
+      }).select().single();
 
       if (response != null) {
         setState(() {
           farms.add({
             "id": response["id"],
             "name": response["farm_name"],
-            "location": response["location"],
             "size": response["size"],
             "imageUrl": response["imageUrl"],
+            "crop_name": response["crop_name"],
+            "latitude": response["latitude"],
+            "longitude": response["longitude"],
           });
         });
-        print("Farm added successfully!");
-      } else {
-        print("Failed to add farm: No data returned");
       }
     } catch (e) {
-      print("Exception caught while adding farm: $e");
+      print("Error adding farm: $e");
     }
   }
 
@@ -205,7 +229,6 @@ class _HomescreencontentState extends State<Homescreencontent> {
 
   void _showAddFarmDialog(BuildContext context) {
     final TextEditingController nameController = TextEditingController();
-    final TextEditingController locationController = TextEditingController();
     final TextEditingController sizeController = TextEditingController();
     File? selectedImage;
 
@@ -228,7 +251,7 @@ class _HomescreencontentState extends State<Homescreencontent> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
                           image: DecorationImage(
-                            image: FileImage(selectedImage!), // Display the selected image
+                            image: FileImage(selectedImage!),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -246,13 +269,29 @@ class _HomescreencontentState extends State<Homescreencontent> {
                         ),
                       ),
                     const SizedBox(height: 20),
+                    DropdownButtonFormField<String>(
+                      value: selectedCrop,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCrop = value;
+                        });
+                      },
+                      items: cropList.map((crop) {
+                        return DropdownMenuItem(value: crop, child: Text(crop));
+                      }).toList(),
+                      decoration: const InputDecoration(labelText: "Select Crop"),
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () => _getCurrentLocation(setState),
+                      child: const Text("Get Current Location"),
+                    ),
+                    if (latitude != null && longitude != null)
+                      Text("Coordinates: $latitude, $longitude"),
+                    const SizedBox(height: 20),
                     TextField(
                       controller: nameController,
                       decoration: const InputDecoration(labelText: "Farm Name"),
-                    ),
-                    TextField(
-                      controller: locationController,
-                      decoration: const InputDecoration(labelText: "Location"),
                     ),
                     TextField(
                       controller: sizeController,
@@ -264,7 +303,7 @@ class _HomescreencontentState extends State<Homescreencontent> {
                         final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
                         if (image != null) {
                           setState(() {
-                            selectedImage = File(image.path); // Update the state to show the selected image
+                            selectedImage = File(image.path);
                           });
                         }
                       },
@@ -281,15 +320,14 @@ class _HomescreencontentState extends State<Homescreencontent> {
                 TextButton(
                   onPressed: () async {
                     final name = nameController.text;
-                    final location = locationController.text;
                     final size = sizeController.text;
 
-                    if (name.isNotEmpty && location.isNotEmpty && size.isNotEmpty) {
-                      await _addFarm(name, location, size, selectedImage);
+                    if (name.isNotEmpty && size.isNotEmpty && latitude != null && longitude != null && selectedCrop != null) {
+                      await _addFarm(name, size, selectedImage);
                       Navigator.pop(context);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Please fill all fields")),
+                        const SnackBar(content: Text("Please fill all fields and get location")),
                       );
                     }
                   },
@@ -320,7 +358,14 @@ class _HomescreencontentState extends State<Homescreencontent> {
           ),
           ListTile(
             title: Text(farms[index]['name']),
-            subtitle: Text("Location: ${farms[index]['location']}\nSize: ${farms[index]['size']} acres"),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Crop: ${farms[index]['crop_name']}"),
+                Text("Size: ${farms[index]['size']} acres"),
+                Text("Coordinates: ${farms[index]['latitude']}, ${farms[index]['longitude']}"),
+              ],
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.red),
