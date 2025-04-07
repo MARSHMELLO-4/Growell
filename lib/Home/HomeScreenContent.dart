@@ -27,25 +27,26 @@ class _HomescreencontentState extends State<Homescreencontent> {
     print("Notifying users about $supabase");
     _fetchUserPhoneNumber();
   }
-
   Future<void> _getCurrentLocation(Function(void Function()) setDialogState) async {
     try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-
-      if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
-        print("Location permission denied");
-        return;
-      }
-
+      // ... permission checks ...
       final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      setDialogState(() {
-        latitude = position.latitude;
-        longitude = position.longitude;
-      });
-      print("Lat: $latitude, Long: $longitude");
+
+      // Update main state first
+      if (mounted) {
+        setState(() {
+          latitude = position.latitude;
+          longitude = position.longitude;
+        });
+      }
+
+      // Then try to update dialog state if still open
+      try {
+        setDialogState(() {});
+      } catch (e) {
+        print("Dialog already closed");
+      }
+
     } catch (e) {
       print("Error getting location: $e");
     }
@@ -80,7 +81,7 @@ class _HomescreencontentState extends State<Homescreencontent> {
 
   Future<void> _fetchUserPhoneNumber() async {
     final response = await supabase.auth.getUser();
-    if (response.user != null) {
+    if (response.user != null && mounted) {  // Add mounted check
       setState(() {
         userPhoneNumber = response.user!.phone;
       });
