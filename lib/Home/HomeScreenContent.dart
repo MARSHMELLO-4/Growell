@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'farmDetailsPage.dart';
 
 class Homescreencontent extends StatefulWidget {
   @override
@@ -343,36 +344,43 @@ class _HomescreencontentState extends State<Homescreencontent> {
   }
 
   Widget _farmCard(int index) {
-    return Card(
-      child: Column(
-        children: [
-          farms[index]['imageUrl'] != null && farms[index]['imageUrl'].isNotEmpty
-              ? Image.network(
-            farms[index]['imageUrl'],
-            height: 200,
-            fit: BoxFit.cover,
-          )
-              : Image.network(
-            'https://imgs.search.brave.com/QrrF8yctvnxGKn5UBvuEt1XL7Pv04zXmzQ0y50RN5cY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA3LzkxLzIyLzU5/LzM2MF9GXzc5MTIy/NTkyN19jYVJQUEg5/OUQ2RDFpRm9ua0NS/bUNHemtKUGYzNlFE/dy5qcGc',
-            height: 200,
-            fit: BoxFit.cover,
-          ),
-          ListTile(
-            title: Text(farms[index]['name']),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Crop: ${farms[index]['crop_name']}"),
-                Text("Size: ${farms[index]['size']} acres"),
-                Text("Coordinates: ${farms[index]['latitude']}, ${farms[index]['longitude']}"),
-              ],
+    return GestureDetector(
+      onTap: () {
+        // Handle farm card tap if needed
+        //navigate to the details page of farm
+        Navigator.push(context, MaterialPageRoute(builder: (context) => FarmDetailsPage(farm: farms[index])));
+      },
+      child: Card(
+        child: Column(
+          children: [
+            farms[index]['imageUrl'] != null && farms[index]['imageUrl'].isNotEmpty
+                ? Image.network(
+              farms[index]['imageUrl'],
+              height: 200,
+              fit: BoxFit.cover,
+            )
+                : Image.network(
+              'https://imgs.search.brave.com/QrrF8yctvnxGKn5UBvuEt1XL7Pv04zXmzQ0y50RN5cY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA3LzkxLzIyLzU5/LzM2MF9GXzc5MTIy/NTkyN19jYVJQUEg5/OUQ2RDFpRm9ua0NS/bUNHemtKUGYzNlFE/dy5qcGc',
+              height: 200,
+              fit: BoxFit.cover,
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () => _deleteFarm(index),
-          ),
-        ],
+            ListTile(
+              title: Text(farms[index]['name']),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Crop: ${farms[index]['crop_name']}"),
+                  Text("Size: ${farms[index]['size']} acres"),
+                  Text("Coordinates: ${farms[index]['latitude']}, ${farms[index]['longitude']}"),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _deleteFarm(index),
+            ),
+          ],
+        ),
       ),
     );
   }
