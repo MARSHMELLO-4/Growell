@@ -80,17 +80,23 @@ class _HomescreencontentState extends State<Homescreencontent> {
     }
   }
 
+  // Future<void> _fetchUserPhoneNumber() async {
+  //   final response = await supabase.auth.getUser();
+  //   if (response.user != null && mounted) {  // Add mounted check
+  //     setState(() {
+  //       userPhoneNumber = response.user!.phone; //this is the change
+  //        // Hardcoded for testing purposes
+  //     });
+  //     print("User Phone Number: $userPhoneNumber");
+  //     _fetchFarms();
+  //   } else {
+  //     print("User is not logged in!");
+  //   }
+  // }
   Future<void> _fetchUserPhoneNumber() async {
-    final response = await supabase.auth.getUser();
-    if (response.user != null && mounted) {  // Add mounted check
-      setState(() {
-        userPhoneNumber = response.user!.phone;
-      });
-      print("User Phone Number: $userPhoneNumber");
-      _fetchFarms();
-    } else {
-      print("User is not logged in!");
-    }
+    userPhoneNumber = "918989547821";
+    print("User Phone Number: $userPhoneNumber");
+    _fetchFarms();
   }
 
   Future<void> _fetchFarms() async {
